@@ -1,0 +1,35 @@
+name: Daily GitHub Contribution
+
+on:
+  schedule:
+    - cron: '0 13 * * *'     # Runs every day at 1:00 PM UTC (adjust for Fort Worth time)
+  workflow_dispatch:         # Allows you to trigger it manually anytime
+
+jobs:
+  contribute:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Make a small change & commit
+        run: |
+          # Update the file with current date/time (Fort Worth friendly)
+          echo "Daily heartbeat - $(date -u +'%Y-%m-%d %H:%M:%S UTC') - from Fort Worth" >> .github/heartbeat.txt
+          
+          # Configure git
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          
+          # Stage and commit
+          git add .github/heartbeat.txt
+          
+          # Commit (the || true prevents failure if nothing changed)
+          git commit -m "chore: daily contribution $(date -u +'%Y-%m-%d')" || echo "No changes to commit"
+          
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
